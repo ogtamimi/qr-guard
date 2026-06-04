@@ -9,19 +9,19 @@ QR Guard analyzes links for phishing, malware, and other threats by running them
 ## Features
 
 - **QR Code & URL Scanning** ge Upload or drag-and-drop a QR image, or paste a URL directly. QR codes are decoded client-side before scanning.
-- **Multi-Engine Threat Detection** — Four independent sources run in parallel:
-  - **VirusTotal** — Aggregated antivirus database
-  - **Google Safe Browsing** — Google's real-time blocklist
-  - **URLhaus** — abuse.ch collaborative malware feed
-  - **Groq Llama-3 AI** — Semantic analysis of URL structure, redirect chain, and threat signals with a natural-language risk assessment
-- **Redirect Chain Tracing** — Follows every server-side redirect up to 8 hops, detecting domain changes and circular loops
-- **Heuristic Scoring** — Evaluates HTTPS status, redirect depth, domain changes, suspicious keywords (login, verify, bank, crypto, etc.), and IP-based hosting
-- **Risk Score Dashboard** — Visual circular gauge with SAFE / SUSPICIOUS / DANGEROUS classification
-- **Scan History** — Per-user history with search and status filtering, persisted across sessions
-- **User Authentication** — Powered by Clerk; sandbox bypass available for development
-- **Usage Limits** — Daily scan quotas by plan: FREE (5), PRO (500), ENTERPRISE (unlimited)
-- **Dark / Light Mode** — Persisted theme preference
-- **Responsive Design** — Mobile-first layout with Tailwind CSS v4
+- **Multi-Engine Threat Detection** - Four independent sources run in parallel:
+  - **VirusTotal** - Aggregated antivirus database
+  - **Google Safe Browsing** - Google's real-time blocklist
+  - **URLhaus** - abuse.ch collaborative malware feed
+  - **Groq Llama-3 AI** - Semantic analysis of URL structure, redirect chain, and threat signals with a natural-language risk assessment
+- **Redirect Chain Tracing** - Follows every server-side redirect up to 8 hops, detecting domain changes and circular loops
+- **Heuristic Scoring** - Evaluates HTTPS status, redirect depth, domain changes, suspicious keywords (login, verify, bank, crypto, etc.), and IP-based hosting
+- **Risk Score Dashboard** - Visual circular gauge with SAFE / SUSPICIOUS / DANGEROUS classification
+- **Scan History** - Per-user history with search and status filtering, persisted across sessions
+- **User Authentication** - Powered by Clerk; sandbox bypass available for development
+- **Usage Limits** - Daily scan quotas by plan: FREE (5), PRO (500), ENTERPRISE (unlimited)
+- **Dark / Light Mode** - Persisted theme preference
+- **Responsive Design** - Mobile-first layout with Tailwind CSS v4
 
 ---
 
@@ -97,14 +97,14 @@ Push to GitHub and import the repo in the [Vercel dashboard](https://vercel.com)
 
 ## How It Works
 
-1. **Input** — User uploads a QR image (decoded client-side with jsQR) or pastes a URL
-2. **Scan Request** — Sent to `POST /api/scan`
-3. **Redirect Tracing** — Follows the full HTTP redirect chain, up to 8 hops, with manual redirect mode
-4. **Parallel Threat Queries** — VirusTotal, Google Safe Browsing, and URLhaus queried simultaneously
-5. **DNS Resolution** — Resolves A, NS, and MX records to validate domain infrastructure
-6. **Heuristic Scoring** — Calculates a base risk score from all gathered signals
-7. **AI Enhancement** — If `GROQ_API_KEY` is set, scan metadata goes to Llama-3.3-70b for semantic analysis and a natural-language risk report
-8. **Response** — Combined result displayed in the dashboard
+1. **Input** - User uploads a QR image (decoded client-side with jsQR) or pastes a URL
+2. **Scan Request** - Sent to `POST /api/scan`
+3. **Redirect Tracing** - Follows the full HTTP redirect chain, up to 8 hops, with manual redirect mode
+4. **Parallel Threat Queries** - VirusTotal, Google Safe Browsing, and URLhaus queried simultaneously
+5. **DNS Resolution** - Resolves A, NS, and MX records to validate domain infrastructure
+6. **Heuristic Scoring** - Calculates a base risk score from all gathered signals
+7. **AI Enhancement** - If `GROQ_API_KEY` is set, scan metadata goes to Llama-3.3-70b for semantic analysis and a natural-language risk report
+8. **Response** - Combined result displayed in the dashboard
 
 ---
 
