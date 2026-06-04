@@ -1,0 +1,295 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Base custom classes to match rich visual transitions */
+body {
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, th {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Dark Mode Overrides (Professional Theme Enhancements)                      */
+/* -------------------------------------------------------------------------- */
+
+html, body {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Base styles for dark theme */
+.dark {
+  background-color: #0b0f19 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark body {
+  background-color: #0b0f19 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Standard and translucent card surfaces */
+.dark .bg-white,
+.dark .bg-white\/95,
+.dark .bg-white\/55 {
+  background-color: #111827 !important; /* Deep space charcoal */
+}
+
+/* Slate background hierarchies & opacity variants */
+.dark .bg-slate-50,
+.dark .bg-slate-55,
+.dark .bg-slate-100,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/80,
+.dark .bg-slate-100\/50,
+.dark .bg-slate-100\/80,
+.dark [class*="bg-slate-50/50"],
+.dark [class*="bg-slate-50\/50"],
+.dark [class*="bg-slate-50/80"],
+.dark [class*="bg-slate-50\/80"],
+.dark [class*="bg-slate-100/50"],
+.dark [class*="bg-slate-100\/50"],
+.dark [class*="bg-slate-100/80"],
+.dark [class*="bg-slate-100\/80"] {
+  background-color: #1e293b !important; /* Steel-slate panel */
+}
+
+/* Gray background hierarchies & opacity variants */
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-gray-50\/50,
+.dark .bg-gray-50\/95,
+.dark [class*="bg-gray-50/50"],
+.dark [class*="bg-gray-50\/50"],
+.dark [class*="bg-gray-50/95"],
+.dark [class*="bg-gray-50\/95"] {
+  background-color: #1e293b !important;
+}
+
+/* Hover and active element selection states */
+.dark .hover\:bg-white\/55:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .hover\:bg-slate-200\/70:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: #334155 !important;
+}
+
+/* Input Fields and Forms */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark select,
+.dark textarea {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark input::placeholder {
+  color: #64748b !important;
+}
+
+/* Global Border overrides */
+.dark .border-slate-100,
+.dark .border-slate-150,
+.dark .border-slate-200,
+.dark .border-slate-200\/50,
+.dark .border-slate-200\/80,
+.dark .border-slate-300,
+.dark .border-gray-50,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: #334155 !important;
+}
+
+/* Text-Primary High Contrast overrides */
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-850,
+.dark .text-slate-800,
+.dark .text-slate-700,
+.dark .text-slate-755,
+.dark .text-slate-750,
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-750,
+.dark .text-gray-700,
+.dark .text-indigo-950,
+.dark .text-indigo-900 {
+  color: #ffffff !important; /* Ultimate readability white */
+}
+
+/* Text-Secondary High Contrast overrides */
+.dark .text-slate-655,
+.dark .text-slate-650,
+.dark .text-slate-600,
+.dark .text-slate-500,
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-indigo-805,
+.dark .text-indigo-800,
+.dark .text-indigo-750,
+.dark .text-indigo-700,
+.dark .text-indigo-650 {
+  color: #cbd5e1 !important; /* Gentle readable light-gray */
+}
+
+/* Text-Muted Soft Slate overrides */
+.dark .text-slate-450,
+.dark .text-slate-400,
+.dark .text-gray-400 {
+  color: #94a3b8 !important; /* Clean muted slate */
+}
+
+/* Premium Radiance Highlights (Indigo, Purple) */
+.dark .text-indigo-600,
+.dark .text-indigo-500 {
+  color: #818cf8 !important; /* Bright glowing indigo */
+}
+
+.dark .bg-indigo-50,
+.dark .bg-indigo-50\/50,
+.dark .bg-indigo-50\/20,
+.dark .bg-indigo-50\/60,
+.dark .bg-indigo-50\/80,
+.dark .bg-indigo-100\/80,
+.dark [class*="bg-indigo-50/50"],
+.dark [class*="bg-indigo-50\/50"],
+.dark [class*="bg-indigo-50/20"],
+.dark [class*="bg-indigo-50\/20"],
+.dark [class*="bg-indigo-50/60"],
+.dark [class*="bg-indigo-50\/60"],
+.dark [class*="bg-indigo-50/80"],
+.dark [class*="bg-indigo-50\/80"],
+.dark [class*="bg-indigo-100/80"],
+.dark [class*="bg-indigo-100\/80"] {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+.dark .border-indigo-100,
+.dark .border-indigo-150,
+.dark .border-indigo-200,
+.dark .border-indigo-100\/50,
+.dark [class*="border-indigo-100/50"],
+.dark [class*="border-indigo-100\/50"] {
+  border-color: rgba(129, 140, 248, 0.3) !important;
+}
+
+/* Success Indicators (Emerald) */
+.dark .text-emerald-700,
+.dark .text-emerald-600 {
+  color: #34d399 !important; /* Vibrant emerald */
+}
+
+.dark .bg-emerald-50,
+.dark .bg-emerald-55,
+.dark .bg-emerald-50\/30,
+.dark [class*="bg-emerald-50/30"],
+.dark [class*="bg-emerald-50\/30"] {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+.dark .border-emerald-100,
+.dark .border-emerald-150,
+.dark .border-emerald-200,
+.dark .border-emerald-250 {
+  border-color: rgba(52, 211, 153, 0.3) !important;
+}
+
+/* Warnings and Simulators (Amber/Gold) */
+.dark .text-amber-900,
+.dark .text-amber-850,
+.dark .text-amber-800,
+.dark .text-amber-700 {
+  color: #fbbf24 !important; /* High contrast gold */
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-50\/80,
+.dark .bg-amber-50\/30,
+.dark .bg-amber-100\/50,
+.dark .bg-amber-100\/80,
+.dark [class*="bg-amber-50/80"],
+.dark [class*="bg-amber-50\/80"],
+.dark [class*="bg-amber-50/30"],
+.dark [class*="bg-amber-50\/30"],
+.dark [class*="bg-amber-100/50"],
+.dark [class*="bg-amber-100\/50"],
+.dark [class*="bg-amber-100/80"],
+.dark [class*="bg-amber-100\/80"] {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+}
+
+.dark .border-amber-100,
+.dark .border-amber-150,
+.dark .border-amber-200,
+.dark .border-amber-250,
+.dark .border-amber-250\/60,
+.dark [class*="border-amber-250/60"],
+.dark [class*="border-amber-250\/60"] {
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+/* Danger / Alerts (Red / Rose / Pink) */
+.dark .text-red-750,
+.dark .text-red-700,
+.dark .text-red-650,
+.dark .text-rose-700 {
+  color: #f87171 !important; /* Soft alert red */
+}
+
+.dark .bg-red-50,
+.dark .bg-rose-50,
+.dark .bg-red-50\/50,
+.dark .bg-red-50\/30,
+.dark .bg-red-50\/80,
+.dark [class*="bg-red-50/50"],
+.dark [class*="bg-red-50\/50"],
+.dark [class*="bg-red-50/30"],
+.dark [class*="bg-red-50\/30"],
+.dark [class*="bg-red-50/80"],
+.dark [class*="bg-red-50\/80"] {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+.dark .border-red-100,
+.dark .border-red-150,
+.dark .border-red-200,
+.dark .border-rose-250 {
+  border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
+/* Scrollbars styling for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

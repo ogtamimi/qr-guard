@@ -1,0 +1,6 @@
+{
+  "name": "QR Guard",
+  "description": "افحص أي QR Code أو رابط وتأكد من سلامته وحمايتك من الاختراق والروابط الخطيرة باستخدام الذكاء الاصطناعي وقواعد البيانات الأمنية.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

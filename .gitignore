@@ -1,0 +1,13 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+*.bak
+*.pid
+.env*
+!.env.example
+api/.vercel/
+.agents/
+skills-lock.json
