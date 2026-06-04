@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { BrowserQRCodeReader } from '@zxing/browser';
+import { BrowserQRCodeReader } from '@zxing/library';
 import { Image, Loader2, ShieldAlert } from 'lucide-react';
 
 interface QRScannerProps {
@@ -16,32 +16,40 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else {
       setDragActive(false);
     }
   };
 
-  const decodeImageFile = async (file: File) => {
+  const decodeImageFile = (file: File) => {
     setError(null);
 
-    try {
-      const reader = new FileReader();
+    const reader = new FileReader();
 
-      reader.onload = async (event) => {
-        const img = new window.Image();
+    reader.onload = (event) => {
+      const imageDataUrl = event.target?.result as string;
 
-        img.onload = async () => {
+      // Create safe image element (TS-friendly)
+      const imageElement = document.createElement('img');
+
+      imageElement.onload = async () => {
+        try {
+          // =========================
+          // 1. Resize using canvas
+          // =========================
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
 
           if (!ctx) {
-            setError('Failed to process image');
+            setError('Failed to initialize image processor.');
             return;
           }
 
-          // Resize for performance (important for mobile photos)
+          const img = imageElement;
+
           const MAX_SIZE = 1500;
 
           let width = img.width;
@@ -58,37 +66,68 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
           canvas.width = width;
           canvas.height = height;
 
+          // =========================
+          // 2. Enhance image quality
+          // =========================
           ctx.filter = 'contrast(160%) brightness(110%)';
           ctx.drawImage(img, 0, 0, width, height);
 
+          const processedDataUrl = canvas.toDataURL('image/png');
+
+          // =========================
+          // 3. ZXing decode
+          // =========================
           const codeReader = new BrowserQRCodeReader();
 
-          try {
-            const result = await codeReader.decodeFromCanvas(canvas);
+          const finalImage = document.createElement('img');
+          finalImage.src = processedDataUrl;
 
-            if (result?.getText()) {
-              onScanSuccess(result.getText(), 'QR_IMAGE');
-            } else {
-              setError('No QR code detected in image.');
+          finalImage.onload = async () => {
+            try {
+              const result = await codeReader.decodeFromImageElement(finalImage);
+
+              if (result?.getText()) {
+                onScanSuccess(result.getText(), 'QR_IMAGE');
+              } else {
+                throw new Error('No QR found');
+              }
+            } catch {
+              // =========================
+              // 4. Fallback attempt
+              // =========================
+              try {
+                const fallbackResult =
+                  await codeReader.decodeFromImageElement(finalImage);
+
+                if (fallbackResult?.getText()) {
+                  onScanSuccess(fallbackResult.getText(), 'QR_IMAGE');
+                } else {
+                  setError('No QR code detected in this image.');
+                }
+              } catch {
+                setError(
+                  'We could not detect a readable QR code. Try a clearer image, better lighting, or move closer to the QR code.'
+                );
+              }
             }
-          } catch {
-            setError(
-              'We could not detect a readable QR code. Try better lighting or a clearer image.'
-            );
-          }
-        };
+          };
 
-        img.onerror = () => {
-          setError('Failed to load image.');
-        };
-
-        img.src = event.target?.result as string;
+          finalImage.onerror = () => {
+            setError('Failed to process image.');
+          };
+        } catch {
+          setError('Unexpected error while processing image.');
+        }
       };
 
-      reader.readAsDataURL(file);
-    } catch (err) {
-      setError('Scanning failed unexpectedly.');
-    }
+      imageElement.onerror = () => {
+        setError('Invalid image file.');
+      };
+
+      imageElement.src = imageDataUrl;
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -119,8 +158,10 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
         onDragLeave={handleDrag}
         onDrop={handleDrop}
         onClick={triggerFileSelect}
-        className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer ${
-          dragActive ? 'border-indigo-500 bg-indigo-50' : 'border-slate-300'
+        className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all ${
+          dragActive
+            ? 'border-indigo-500 bg-indigo-50'
+            : 'border-slate-300 hover:border-indigo-400'
         } ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
       >
         <input
@@ -133,7 +174,7 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
 
         {isLoading ? (
           <div className="flex flex-col items-center">
-            <Loader2 className="animate-spin w-10 h-10 text-indigo-600" />
+            <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
             <p className="mt-2 text-sm">Scanning QR...</p>
           </div>
         ) : (
