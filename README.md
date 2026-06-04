@@ -44,12 +44,7 @@ Access detailed scan history with search, filtering, and threat status tracking.
 ### 👤 Secure User Authentication
 Protected user accounts powered by Clerk authentication, providing secure access to scan history, account settings, and subscription features.
 
-### 📈 Flexible Usage Plans
-Choose the plan that fits your needs:
-
-- FREE — 5 scans per day
-- PRO — 500 scans per day
-- ENTERPRISE — Unlimited scanning
+### 📈 FREE — 3 scans per day
 
 ### 🌙 Modern User Experience
 Enjoy a responsive, mobile-friendly dashboard with dark mode and light mode support, built using modern web technologies for fast and reliable performance.
