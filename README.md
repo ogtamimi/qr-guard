@@ -1,6 +1,6 @@
 # QR Guard
 
-**Scan any QR code or URL — know if it's safe in seconds.**
+**Scan any QR code or URL - know if it's safe in seconds.**
 
 QR Guard analyzes links for phishing, malware, and other threats by running them through four security engines and an AI model. It traces every redirect hop, scores risk visually, and delivers a plain-English safety report.
 
