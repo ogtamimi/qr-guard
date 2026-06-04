@@ -6,22 +6,53 @@ QR Guard analyzes links for phishing, malware, and other threats by running them
 
 ---
 
+
 ## Features
 
-- **QR Code & URL Scanning** ge Upload or drag-and-drop a QR image, or paste a URL directly. QR codes are decoded client-side before scanning.
-- **Multi-Engine Threat Detection** - Four independent sources run in parallel:
-  - **VirusTotal** - Aggregated antivirus database
-  - **Google Safe Browsing** - Google's real-time blocklist
-  - **URLhaus** - abuse.ch collaborative malware feed
-  - **Groq Llama-3 AI** - Semantic analysis of URL structure, redirect chain, and threat signals with a natural-language risk assessment
-- **Redirect Chain Tracing** - Follows every server-side redirect up to 8 hops, detecting domain changes and circular loops
-- **Heuristic Scoring** - Evaluates HTTPS status, redirect depth, domain changes, suspicious keywords (login, verify, bank, crypto, etc.), and IP-based hosting
-- **Risk Score Dashboard** - Visual circular gauge with SAFE / SUSPICIOUS / DANGEROUS classification
-- **Scan History** - Per-user history with search and status filtering, persisted across sessions
-- **User Authentication** - Powered by Clerk; sandbox bypass available for development
-- **Usage Limits** - Daily scan quotas by plan: FREE (5), PRO (500), ENTERPRISE (unlimited)
-- **Dark / Light Mode** - Persisted theme preference
-- **Responsive Design** - Mobile-first layout with Tailwind CSS v4
+### 🛡️ AI-Powered QR Code Security Scanner
+Upload a QR code image, drag and drop a file, or paste a URL directly. QR Guard instantly decodes and analyzes QR codes to identify phishing attempts, malicious links, scams, and other online threats before users interact with them.
+
+### 🔍 Advanced URL & QR Code Threat Detection
+Every scan performs comprehensive security checks using multiple threat intelligence sources and AI-powered analysis to detect phishing websites, malware distribution, fraudulent domains, and suspicious redirects.
+
+### ⚡ Multi-Engine Security Analysis
+QR Guard combines several security engines for accurate threat detection:
+
+- **VirusTotal** – Global antivirus and malware intelligence network
+- **Google Safe Browsing** – Real-time phishing and malicious website detection
+- **URLhaus** – Collaborative malware and abuse tracking database
+- **Groq Llama 3 AI** – AI-powered URL security analysis that evaluates domain patterns, redirect behavior, phishing indicators, and social engineering risks
+
+### 🔄 Redirect Chain Monitoring
+Track every redirect in a URL chain, uncover hidden destinations, identify domain-switching techniques, detect suspicious redirect loops, and reveal the true destination behind shortened or disguised links.
+
+### 🚨 QR Phishing & Scam Detection
+Identify common phishing indicators including fake login pages, banking scams, cryptocurrency fraud, account verification traps, credential theft attempts, and other malicious campaigns commonly delivered through QR codes.
+
+### 📊 Intelligent Risk Scoring
+Receive an easy-to-understand security assessment with a visual risk score and clear classifications:
+
+- SAFE
+- SUSPICIOUS
+- DANGEROUS
+
+Risk calculations consider HTTPS security, domain reputation, redirect behavior, keyword analysis, IP-based hosting, and multiple threat intelligence signals.
+
+### 📁 Scan History & Security Reports
+Access detailed scan history with search, filtering, and threat status tracking. Review previous QR code and URL security analyses anytime.
+
+### 👤 Secure User Authentication
+Protected user accounts powered by Clerk authentication, providing secure access to scan history, account settings, and subscription features.
+
+### 📈 Flexible Usage Plans
+Choose the plan that fits your needs:
+
+- FREE — 5 scans per day
+- PRO — 500 scans per day
+- ENTERPRISE — Unlimited scanning
+
+### 🌙 Modern User Experience
+Enjoy a responsive, mobile-friendly dashboard with dark mode and light mode support, built using modern web technologies for fast and reliable performance.
 
 ---
 
