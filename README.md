@@ -4,18 +4,32 @@
 
 QR Guard analyzes links for phishing, malware, and other threats by running them through four security engines and an AI model. It traces every redirect hop, scores risk visually, and delivers a plain-English safety report.
 
+<p align="center">
+  <img src="https://img.shields.io/badge/OPEN--SOURCE-QR%20Guard-111111?style=for-the-badge&logo=github&logoColor=white" />
+</p>
+
+<p align="center">
+  <b>QR Guard - Secure QR Code Scanner & Threat Detection Platform</b>
+</p>
+
+<p align="center">
+  <a href="https://www.paypal.com/ncp/payment/NKZHVG2EE5TEQ" target="_blank">
+    <img src="https://img.shields.io/badge/Sponsor%20This%20Project-PayPal%20%7C%20Apple%20Pay%20%7C%20Card-0070ba?style=for-the-badge&logo=paypal&logoColor=white" />
+  </a>
+</p>
+
 ---
 
 
 ## Features
 
-### 🛡️ AI-Powered QR Code Security Scanner
+### AI-Powered QR Code Security Scanner
 Upload a QR code image, drag and drop a file, or paste a URL directly. QR Guard instantly decodes and analyzes QR codes to identify phishing attempts, malicious links, scams, and other online threats before users interact with them.
 
-### 🔍 Advanced URL & QR Code Threat Detection
+### Advanced URL & QR Code Threat Detection
 Every scan performs comprehensive security checks using multiple threat intelligence sources and AI-powered analysis to detect phishing websites, malware distribution, fraudulent domains, and suspicious redirects.
 
-### ⚡ Multi-Engine Security Analysis
+### Multi-Engine Security Analysis
 QR Guard combines several security engines for accurate threat detection:
 
 - **VirusTotal** – Global antivirus and malware intelligence network
@@ -23,13 +37,13 @@ QR Guard combines several security engines for accurate threat detection:
 - **URLhaus** – Collaborative malware and abuse tracking database
 - **Groq Llama 3 AI** – AI-powered URL security analysis that evaluates domain patterns, redirect behavior, phishing indicators, and social engineering risks
 
-### 🔄 Redirect Chain Monitoring
+### Redirect Chain Monitoring
 Track every redirect in a URL chain, uncover hidden destinations, identify domain-switching techniques, detect suspicious redirect loops, and reveal the true destination behind shortened or disguised links.
 
-### 🚨 QR Phishing & Scam Detection
+### QR Phishing & Scam Detection
 Identify common phishing indicators including fake login pages, banking scams, cryptocurrency fraud, account verification traps, credential theft attempts, and other malicious campaigns commonly delivered through QR codes.
 
-### 📊 Intelligent Risk Scoring
+### Intelligent Risk Scoring
 Receive an easy-to-understand security assessment with a visual risk score and clear classifications:
 
 - SAFE
@@ -38,15 +52,15 @@ Receive an easy-to-understand security assessment with a visual risk score and c
 
 Risk calculations consider HTTPS security, domain reputation, redirect behavior, keyword analysis, IP-based hosting, and multiple threat intelligence signals.
 
-### 📁 Scan History & Security Reports
+### Scan History & Security Reports
 Access detailed scan history with search, filtering, and threat status tracking. Review previous QR code and URL security analyses anytime.
 
-### 👤 Secure User Authentication
+### Secure User Authentication
 Protected user accounts powered by Clerk authentication, providing secure access to scan history, account settings, and subscription features.
 
-### 📈 FREE — 3 scans per day
+### FREE 3 scans per day
 
-### 🌙 Modern User Experience
+### Modern User Experience
 Enjoy a responsive, mobile-friendly dashboard with dark mode and light mode support, built using modern web technologies for fast and reliable performance.
 
 ---
