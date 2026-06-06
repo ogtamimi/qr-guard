@@ -20,9 +20,9 @@ interface ErrorState {
   message: string;
 }
 
-// ─────────────────────────────
+// ──────────────────────────────────────────────────────────────
 // IMAGE HELPERS
-// ─────────────────────────────
+// ──────────────────────────────────────────────────────────────
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -36,23 +36,15 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function getCanvas(width: number, height: number): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-  return { canvas, ctx };
-}
+// ──────────────────────────────────────────────────────────────
+// PRE‑PROCESSING FILTERS (lightweight)
+// ──────────────────────────────────────────────────────────────
 
-// ─────────────────────────────
-// PRE‑PROCESSING FILTERS
-// ─────────────────────────────
-
-function processImageData(
+function applyContrastBrightness(
   imageData: ImageData,
   contrast: number,
   brightness: number,
-  threshold: number | null = null
+  threshold?: number
 ): ImageData {
   const data = new Uint8ClampedArray(imageData.data);
   const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
@@ -60,112 +52,109 @@ function processImageData(
   for (let i = 0; i < data.length; i += 4) {
     const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
     let val = factor * (gray - 128) + 128 + brightness;
-    if (threshold !== null) {
-      val = val < threshold ? 0 : 255;
-    }
+    if (threshold !== undefined) val = val < threshold ? 0 : 255;
     data[i] = data[i + 1] = data[i + 2] = val;
   }
   return new ImageData(data, imageData.width, imageData.height);
 }
 
-// ─────────────────────────────
-// CORE SCANNER LOGIC (multi‑scale + multi‑pass)
-// ─────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// CORE SCANNER (single canvas, no extra image creation)
+// ──────────────────────────────────────────────────────────────
 
-async function scanImageElement(img: HTMLImageElement): Promise<string | null> {
-  const scales = [1, 0.75, 0.5];
+async function scanImageWithRotation(img: HTMLImageElement): Promise<string | null> {
+  const scales = [1, 0.7]; // two scales – original and a bit smaller
   const maxDim = 1200;
+  const angles = [0, 90, 180, 270]; // try all four orientations
 
-  for (const scaleMult of scales) {
+  // Pre‑compute target dimensions for each scale
+  const scaledDims = scales.map(scaleMult => {
     const scale = Math.min(maxDim / img.width, maxDim / img.height, 1) * scaleMult;
-    const width = Math.floor(img.width * scale);
-    const height = Math.floor(img.height * scale);
+    return {
+      width: Math.floor(img.width * scale),
+      height: Math.floor(img.height * scale),
+      scale,
+    };
+  });
 
-    const { ctx } = getCanvas(width, height);
-    ctx.drawImage(img, 0, 0, width, height);
-    const originalData = ctx.getImageData(0, 0, width, height);
+  // Reusable canvas – we'll reuse it for every attempt
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
 
-    const passes = [
-      () => originalData,
-      () => processImageData(originalData, 50, 0),
-      () => processImageData(originalData, 100, 0, 128),
-      () => processImageData(originalData, 30, 20),
-      () => processImageData(originalData, 80, -20),
-    ];
+  for (const angle of angles) {
+    for (const { width, height, scale } of scaledDims) {
+      // Set canvas size (swap dimensions for 90/270°)
+      const isRotated = angle === 90 || angle === 270;
+      canvas.width = isRotated ? height : width;
+      canvas.height = isRotated ? width : height;
 
-    for (const getPassData of passes) {
-      const data = getPassData();
-      const result = jsQR(data.data, data.width, data.height, {
+      // Clear and apply rotation
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(angle * Math.PI / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
+      ctx.restore();
+
+      // Get image data (this is the expensive part, but unavoidable)
+      let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Try raw image
+      let result = jsQR(imageData.data, imageData.width, imageData.height, {
         inversionAttempts: 'attemptBoth',
       });
       if (result?.data) return result.data;
+
+      // Try a few useful filters (only the most effective)
+      const filters = [
+        (data: ImageData) => applyContrastBrightness(data, 50, 0),           // High contrast
+        (data: ImageData) => applyContrastBrightness(data, 100, 0, 128),     // Hard threshold
+        (data: ImageData) => applyContrastBrightness(data, 30, 20),          // Brighter
+      ];
+
+      for (const applyFilter of filters) {
+        const processed = applyFilter(imageData);
+        result = jsQR(processed.data, processed.width, processed.height, {
+          inversionAttempts: 'attemptBoth',
+        });
+        if (result?.data) return result.data;
+      }
     }
   }
   return null;
 }
 
-// ─────────────────────────────
-// MAIN DECODER (WITH ROTATION HANDLING)
-// ─────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// MAIN DECODER (with native API + UI‑friendly yield)
+// ──────────────────────────────────────────────────────────────
 
 async function decodeQR(file: File): Promise<string | null> {
-  // 1. Native API (fastest, may handle rotation automatically)
+  // 1. Native API (fast, may handle rotation)
   try {
     const BarcodeDetectorClass = (window as any).BarcodeDetector;
     if (BarcodeDetectorClass && typeof BarcodeDetectorClass === 'function') {
-      // Suppress TypeScript error: BarcodeDetector not yet in DOM types
-      // @ts-expect-error - BarcodeDetector constructor signature is not standardised
       const detector = new BarcodeDetectorClass({ formats: ['qr_code'] });
       const bitmap = await createImageBitmap(file);
       const results = await detector.detect(bitmap);
       if (results?.length > 0) return results[0].rawValue;
     }
   } catch (e) {
-    // Native API failed – fall back to jsQR
-    console.warn('Native barcode detection failed:', e);
+    console.warn('Native barcode detection failed', e);
   }
 
-  // 2. Load image for jsQR processing
-  const originalImg = await loadImage(file);
+  // 2. Load image for jsQR
+  const img = await loadImage(file);
 
-  // Try original orientation
-  let decoded = await scanImageElement(originalImg);
-  if (decoded) return decoded;
+  // Give UI a chance to update the loading spinner before heavy work
+  await new Promise(resolve => setTimeout(resolve, 0));
 
-  // Helper to create a rotated copy of the image
-  const getRotatedImage = (img: HTMLImageElement, angle: 0 | 90 | 180 | 270): Promise<HTMLImageElement> =>
-    new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      if (angle === 90 || angle === 270) {
-        canvas.width = img.height;
-        canvas.height = img.width;
-      } else {
-        canvas.width = img.width;
-        canvas.height = img.height;
-      }
-      const ctx = canvas.getContext('2d')!;
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate(angle * Math.PI / 180);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
-
-      const rotatedImg = new Image();
-      rotatedImg.onload = () => resolve(rotatedImg);
-      rotatedImg.src = canvas.toDataURL();
-    });
-
-  // Try 90°, 180°, 270° rotations
-  for (const angle of [90, 180, 270] as const) {
-    const rotatedImg = await getRotatedImage(originalImg, angle);
-    decoded = await scanImageElement(rotatedImg);
-    if (decoded) return decoded;
-  }
-
-  return null;
+  // 3. Run the optimised scanner (one canvas, rotation + scales + filters)
+  return await scanImageWithRotation(img);
 }
 
-// ─────────────────────────────
-// URL CHECK
-// ─────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// URL VALIDATION
+// ──────────────────────────────────────────────────────────────
 
 function isUrl(text: string): boolean {
   try {
@@ -176,9 +165,9 @@ function isUrl(text: string): boolean {
   }
 }
 
-// ─────────────────────────────
-// COMPONENT
-// ─────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// REACT COMPONENT
+// ──────────────────────────────────────────────────────────────
 
 export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
