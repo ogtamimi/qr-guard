@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ClerkProvider, useUser, useClerk, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { ClerkProvider, useUser, useClerk, UserButton } from '@clerk/clerk-react';
+
 import {
   Shield, ShieldCheck, ShieldAlert, ShieldX, Loader2, Globe, History,
   Trash2, Terminal, Settings, HelpCircle, Lock, Unlock, Check,
@@ -309,6 +310,7 @@ export function AppContent({
             </button>
 
             {userEmail ? (
+
               <>
                 <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 hidden sm:flex">
                   <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -324,13 +326,28 @@ export function AppContent({
               </>
             ) : (
               <div className="flex items-center gap-1.5 font-sans">
-                <SignInButton mode="modal">
-                  <button id="header-login-btn" className="px-3.5 py-1.5 text-xs font-bold text-slate-650 hover:text-indigo-650 transition-colors cursor-pointer">Log in</button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button id="header-signup-btn" className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-750 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer">Sign up</button>
-                </SignUpButton>
+                <button
+                  id="header-login-btn"
+                  onClick={() => {
+                    setAuthModalMode('signin');
+                    setIsAuthModalOpen(true);
+                  }}
+                  className="px-3.5 py-1.5 text-xs font-bold text-slate-650 hover:text-indigo-650 transition-colors cursor-pointer"
+                >
+                  Log in
+                </button>
+                <button
+                  id="header-signup-btn"
+                  onClick={() => {
+                    setAuthModalMode('signup');
+                    setIsAuthModalOpen(true);
+                  }}
+                  className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-750 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer"
+                >
+                  Sign up
+                </button>
               </div>
+
             )}
           </div>
         </div>

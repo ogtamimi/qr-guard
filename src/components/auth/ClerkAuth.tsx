@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { SignIn, SignUp } from '@clerk/clerk-react';
 import { dark } from '@clerk/themes';
 import { Shield, X, Globe, Server, Code, Sparkles, AlertCircle, ArrowRight } from 'lucide-react';
+import { isProbablyWebViewOrInAppBrowser } from '../../utils/webviewDetection';
+import ExternalBrowserBlocked from './ExternalBrowserBlocked';
+
 
 interface ClerkAuthProps {
   isOpen: boolean;
@@ -23,6 +26,15 @@ export default function ClerkAuth({
 
   if (!isOpen) return null;
 
+  const clerkExternalAuthUrl = (() => {
+    try {
+      const origin = window.location.origin;
+      return `${origin}/#signin`;
+    } catch {
+      return '/#signin';
+    }
+  })();
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm font-sans"
@@ -41,9 +53,16 @@ export default function ClerkAuth({
         </button>
 
         {isClerkConfigured ? (
-          /* REAL CLERK INSTANCE ROUTING WITH PRE-BUILT CLERK COMPONENTS */
-          <div className="p-6 md:p-8 flex flex-col items-center justify-center min-h-[500px]">
-            <div className="text-center mb-6">
+          isProbablyWebViewOrInAppBrowser() ? (
+            <ExternalBrowserBlocked
+              clerkAuthUrl={clerkExternalAuthUrl}
+              onAfterOpen={() => onClose()}
+            />
+          ) : (
+            /* REAL CLERK INSTANCE ROUTING WITH PRE-BUILT CLERK COMPONENTS */
+            <div className="p-6 md:p-8 flex flex-col items-center justify-center min-h-[500px]">
+              <div className="text-center mb-6">
+
               <div className="inline-flex h-11 w-11 bg-indigo-600 rounded-2xl items-center justify-center text-white shadow-md shadow-indigo-500/20 mb-3 animate-pulse">
                 <Shield className="h-5.5 w-5.5 stroke-[2.5]" />
               </div>
@@ -114,10 +133,13 @@ export default function ClerkAuth({
                 {clerkMode === 'signin' ? 'Create an account' : 'Sign in here'}
               </button>
             </div>
-          </div>
+            </div>
+          )
         ) : (
+
           /* NO CLERK ENVIRONMENT KEYS CONFIGURED: SYSTEM DECLARATORY MODE & CLEAR ACTION LIST */
           <div className="p-6 md:p-8 space-y-6">
+
             <div className="text-center">
               <div className="inline-flex h-11 w-11 bg-rose-50 border border-rose-200 rounded-2xl items-center justify-center text-rose-600 mb-3">
                 <AlertCircle className="h-5.5 w-5.5 stroke-[2.2]" />
