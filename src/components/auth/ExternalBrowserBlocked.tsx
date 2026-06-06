@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ExternalLink, Copy, Check } from 'lucide-react';
+import { isProbablyWebViewOrInAppBrowser } from '../../utils/webviewDetection';
 
 export default function ExternalBrowserBlocked({
   clerkAuthUrl,
@@ -11,6 +12,7 @@ export default function ExternalBrowserBlocked({
   onAfterOpen?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const didAutoRedirect = useRef(false);
 
   const safeUrl = useMemo(() => {
     try {
@@ -48,11 +50,37 @@ export default function ExternalBrowserBlocked({
     onAfterOpen?.();
   };
 
-  // Improve UX: if we somehow render this on a page inside an iframe/webview,
-  // still encourage full navigation.
+  // Auto redirect on mobile webviews:
+  // Some in-app browsers ignore/interrupt "open external browser" flows when
+  // triggered by a tap. Auto-navigating shortly after mount is more reliable.
   useEffect(() => {
-    // no-op (placeholder for future)
-  }, []);
+    if (didAutoRedirect.current) return;
+
+    try {
+      if (isProbablyWebViewOrInAppBrowser()) {
+        didAutoRedirect.current = true;
+
+        const t = window.setTimeout(() => {
+          try {
+            // Prefer href for broad compatibility; fallback to assign.
+            window.location.href = safeUrl;
+            onAfterOpen?.();
+          } catch {
+            try {
+              window.location.assign(safeUrl);
+              onAfterOpen?.();
+            } catch {
+              // If navigation fails, user can still use the button / copy link.
+            }
+          }
+        }, 400);
+
+        return () => window.clearTimeout(t);
+      }
+    } catch {
+      // ignore detection/navigation errors
+    }
+  }, [safeUrl, onAfterOpen]);
 
   return (
     <div className="p-6 md:p-8 flex flex-col items-center justify-center min-h-[500px] text-slate-100">
