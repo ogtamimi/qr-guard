@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing to QR Guard! Contributions are welcome—bug reports, feature requests, documentation improvements, and code changes.
+Thanks for your interest in contributing to QR Guard! Contributions are welcome-bug reports, feature requests, documentation improvements, and code changes.
 
 ## How to Contribute
 1. **Open an Issue**
