@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { SignIn, SignUp } from '@clerk/clerk-react';
 import { dark } from '@clerk/themes';
 import { Shield, X, Globe, Server, Code, Sparkles, AlertCircle, ArrowRight } from 'lucide-react';
-import { isProbablyWebViewOrInAppBrowser } from '../../utils/webviewDetection';
-import ExternalBrowserBlocked from './ExternalBrowserBlocked';
-
 
 interface ClerkAuthProps {
   isOpen: boolean;
@@ -26,29 +23,12 @@ export default function ClerkAuth({
 
   if (!isOpen) return null;
 
-  const clerkExternalAuthUrl = (() => {
-    try {
-      const origin = window.location.origin;
-
-      // Ensure a secure external connection in production.
-      // - Keep http://localhost as-is for local development.
-      // - Upgrade http -> https for any non-localhost origin.
-      const httpsOrigin = origin.startsWith('http://') && !origin.includes('localhost')
-        ? origin.replace(/^http:\/\//i, 'https://')
-        : origin;
-
-      return `${httpsOrigin}/#signin`;
-    } catch {
-      return '/#signin';
-    }
-  })();
-
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm font-sans"
       onClick={onClose}
     >
-      <div 
+      <div
         className="w-full max-w-[480px] bg-slate-950 rounded-3xl shadow-2xl border border-slate-800/80 overflow-hidden relative animate-fade-in text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
@@ -61,16 +41,9 @@ export default function ClerkAuth({
         </button>
 
         {isClerkConfigured ? (
-          isProbablyWebViewOrInAppBrowser() ? (
-            <ExternalBrowserBlocked
-              clerkAuthUrl={clerkExternalAuthUrl}
-              onAfterOpen={() => onClose()}
-            />
-          ) : (
-            /* REAL CLERK INSTANCE ROUTING WITH PRE-BUILT CLERK COMPONENTS */
-            <div className="p-6 md:p-8 flex flex-col items-center justify-center min-h-[500px]">
-              <div className="text-center mb-6">
-
+          /* REAL CLERK INSTANCE ROUTING WITH PRE-BUILT CLERK COMPONENTS */
+          <div className="p-6 md:p-8 flex flex-col items-center justify-center min-h-[500px]">
+            <div className="text-center mb-6">
               <div className="inline-flex h-11 w-11 bg-indigo-600 rounded-2xl items-center justify-center text-white shadow-md shadow-indigo-500/20 mb-3 animate-pulse">
                 <Shield className="h-5.5 w-5.5 stroke-[2.5]" />
               </div>
@@ -79,41 +52,41 @@ export default function ClerkAuth({
             </div>
 
             <div className="clerk-widget-container w-full flex justify-center scale-95 origin-center">
-               {clerkMode === 'signin' ? (
-                  <SignIn
-                    routing="hash"
-                    signUpUrl="/#signup"
-                    afterSignInUrl="/"
-                    appearance={{
-                      theme: dark,
-                      variables: {
-                       colorBackground: '#0f172a',
-                       colorText: '#f8fafc',
-                       colorTextSecondary: '#94a3b8',
-                       colorInputBackground: '#111827',
-                       colorInputForeground: '#f8fafc',
-                       colorBorder: '#475569',
-                       colorRing: '#818cf8',
-                      },
-                     }}
+              {clerkMode === 'signin' ? (
+                <SignIn
+                  routing="hash"
+                  signUpUrl="/#signup"
+                  afterSignInUrl="/"
+                  appearance={{
+                    theme: dark,
+                    variables: {
+                      colorBackground: '#0f172a',
+                      colorText: '#f8fafc',
+                      colorTextSecondary: '#94a3b8',
+                      colorInputBackground: '#111827',
+                      colorInputForeground: '#f8fafc',
+                      colorBorder: '#475569',
+                      colorRing: '#818cf8',
+                    },
+                  }}
                 />
-               ) : (
-                  <SignUp
-                    routing="hash"
-                    signInUrl="/#signin"
-                    afterSignUpUrl="/"
-                    appearance={{
-                      theme: dark,
-                      variables: {
-                       colorBackground: '#0f172a',
-                       colorText: '#f8fafc',
-                       colorTextSecondary: '#94a3b8',
-                       colorInputBackground: '#111827',
-                       colorInputForeground: '#f8fafc',
-                       colorBorder: '#475569',
-                       colorRing: '#818cf8',
-                       colorPrimary: '#5b6cf7',
-                       colorPrimaryForeground: '#ffffff',
+              ) : (
+                <SignUp
+                  routing="hash"
+                  signInUrl="/#signin"
+                  afterSignUpUrl="/"
+                  appearance={{
+                    theme: dark,
+                    variables: {
+                      colorBackground: '#0f172a',
+                      colorText: '#f8fafc',
+                      colorTextSecondary: '#94a3b8',
+                      colorInputBackground: '#111827',
+                      colorInputForeground: '#f8fafc',
+                      colorBorder: '#475569',
+                      colorRing: '#818cf8',
+                      colorPrimary: '#5b6cf7',
+                      colorPrimaryForeground: '#ffffff',
                     },
                     elements: {
                       rootBox: 'w-full',
@@ -141,8 +114,7 @@ export default function ClerkAuth({
                 {clerkMode === 'signin' ? 'Create an account' : 'Sign in here'}
               </button>
             </div>
-            </div>
-          )
+          </div>
         ) : (
 
           /* NO CLERK ENVIRONMENT KEYS CONFIGURED: SYSTEM DECLARATORY MODE & CLEAR ACTION LIST */

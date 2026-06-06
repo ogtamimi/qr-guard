@@ -14,17 +14,8 @@ export default function ExternalBrowserBlocked({
 
   const safeUrl = useMemo(() => {
     try {
-      const url = new URL(clerkAuthUrl);
-
-      // If we ever end up on an insecure origin (http) in production-like environments,
-      // upgrade to https for external navigation compatibility.
-      if (url.protocol === 'http:' && !url.hostname.includes('localhost')) {
-        url.protocol = 'https:';
-      }
-
-      return url.toString();
+      return new URL(clerkAuthUrl).toString();
     } catch {
-      // If clerkAuthUrl is already relative/invalid for URL parsing, return as-is.
       return clerkAuthUrl;
     }
   }, [clerkAuthUrl]);
@@ -52,30 +43,9 @@ export default function ExternalBrowserBlocked({
   };
 
   const openInBrowser = () => {
-    // Mobile in-app browsers sometimes block location.assign navigation.
-    // Try window.open first (user-gesture), then fall back to assign.
-    try {
-      const w = window.open(safeUrl, '_blank', 'noopener,noreferrer');
-      if (w) {
-        onAfterOpen?.();
-        return;
-      }
-    } catch {
-      // ignore and fall back
-    }
-
-    try {
-      window.location.assign(safeUrl);
-      onAfterOpen?.();
-    } catch {
-      // last resort: try setting href
-      try {
-        window.location.href = safeUrl;
-        onAfterOpen?.();
-      } catch {
-        // ignore; user can still use copy link
-      }
-    }
+    // Top-level navigation (no popup, no embedded webview).
+    window.location.assign(safeUrl);
+    onAfterOpen?.();
   };
 
   // Improve UX: if we somehow render this on a page inside an iframe/webview,
