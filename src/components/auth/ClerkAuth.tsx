@@ -29,7 +29,15 @@ export default function ClerkAuth({
   const clerkExternalAuthUrl = (() => {
     try {
       const origin = window.location.origin;
-      return `${origin}/#signin`;
+
+      // Ensure a secure external connection in production.
+      // - Keep http://localhost as-is for local development.
+      // - Upgrade http -> https for any non-localhost origin.
+      const httpsOrigin = origin.startsWith('http://') && !origin.includes('localhost')
+        ? origin.replace(/^http:\/\//i, 'https://')
+        : origin;
+
+      return `${httpsOrigin}/#signin`;
     } catch {
       return '/#signin';
     }
