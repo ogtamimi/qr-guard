@@ -1,15 +1,25 @@
-# QR Guard
-
-**Scan any QR code or URL - know if it's safe in seconds.**
-
-QR Guard analyzes links for phishing, malware, and other threats by running them through four security engines and an AI model. It traces every redirect hop, scores risk visually, and delivers a plain-English safety report.
-
 <p align="center">
-  <img src="https://img.shields.io/badge/OPEN--SOURCE-QR%20Guard-111111?style=for-the-badge&logo=github&logoColor=white" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:6A11CB,100:2575FC&height=200&section=header&text=QR%20Guard&fontSize=60&fontColor=ffffff&font=PlayfairDisplay&animation=fadeIn" />
 </p>
 
 <p align="center">
-  <b>QR Guard - Secure QR Code Scanner & Threat Detection Platform</b>
+  <a href="https://www.qr-guard.app">
+    <img src="https://img.shields.io/badge/TRY%20QR%20GUARD-NOW-111827?style=for-the-badge&logo=google-chrome&logoColor=white&labelColor=0A66C2" />
+  </a>
+</p>
+
+<p align="center">
+  Scan any QR code or URL and instantly know if it's safe.
+</p>
+
+<p align="center">
+  QR Guard analyzes links for phishing, malware, and scams using multiple security engines and AI.  
+  It follows every redirect, calculates risk scores visually, and delivers a clear human-readable safety report.
+</p>
+
+
+<p align="center">
+  <b>Secure QR Code Scanner & Threat Detection Platform</b>
 </p>
 
 <p align="center">
@@ -58,7 +68,9 @@ Access detailed scan history with search, filtering, and threat status tracking.
 ### Secure User Authentication
 Protected user accounts powered by Clerk authentication, providing secure access to scan history, account settings, and subscription features.
 
-### FREE 3 scans per day
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Montserrat&weight=800&size=38&pause=1000&color=FF3B30&center=true&vCenter=true&width=800&lines=FREE+3+SCANS+EVERY+DAY" />
+</p>
 
 ### Modern User Experience
 Enjoy a responsive, mobile-friendly dashboard with dark mode and light mode support, built using modern web technologies for fast and reliable performance.
@@ -203,4 +215,6 @@ qr-guard/
 
 ## License
 
-[Apache 2.0](LICENSE)
+This project is released under the **Apache 2.0 License**, giving you freedom to use, modify, and distribute it with attribution.
+
+[View License](./LICENSE)
