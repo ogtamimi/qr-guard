@@ -68,10 +68,6 @@ Access detailed scan history with search, filtering, and threat status tracking.
 ### Secure User Authentication
 Protected user accounts powered by Clerk authentication, providing secure access to scan history, account settings, and subscription features.
 
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Montserrat&weight=800&size=38&pause=1000&color=FF3B30&center=true&vCenter=true&width=800&lines=FREE+3+SCANS+EVERY+DAY" />
-</p>
-
 ### Modern User Experience
 Enjoy a responsive, mobile-friendly dashboard with dark mode and light mode support, built using modern web technologies for fast and reliable performance.
 
@@ -90,6 +86,10 @@ Enjoy a responsive, mobile-friendly dashboard with dark mode and light mode supp
 | Hosting | Vercel (static SPA + serverless API) |
 
 ---
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Montserrat&weight=800&size=38&pause=1000&color=FF3B30&center=true&vCenter=true&width=800&lines=FREE+3+SCANS+EVERY+DAY" />
+</p>
 
 ## Getting Started
 
