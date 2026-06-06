@@ -1,6 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
 import jsQR from 'jsqr';
-import * as exifr from 'exifr';
 import {
   Image,
   Loader2,
@@ -22,152 +21,106 @@ interface ErrorState {
 }
 
 // ──────────────────────────────────────────────────────────────
-// ORIENTATION CORRECTION (fixes camera rotation issues)
+// Safe native BarcodeDetector (silences TypeScript errors)
 // ──────────────────────────────────────────────────────────────
-async function getOrientationCorrectedImage(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = async () => {
-      try {
-        // Read EXIF orientation
-        const exif = await exifr.parse(file, { pick: ['Orientation'] });
-        const orientation = exif?.Orientation || 1;
-
-        // If no rotation needed, return original image
-        if (orientation === 1) {
-          resolve(img);
-          return;
-        }
-
-        // Create canvas to apply transformation
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-
-        let width = img.width;
-        let height = img.height;
-
-        // Swap dimensions for rotated orientations
-        if (orientation >= 5 && orientation <= 8) {
-          [width, height] = [height, width];
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        // Apply transformation based on orientation
-        switch (orientation) {
-          case 2: // Flip horizontal
-            ctx.transform(-1, 0, 0, 1, width, 0);
-            break;
-          case 3: // Rotate 180
-            ctx.transform(-1, 0, 0, -1, width, height);
-            break;
-          case 4: // Flip vertical
-            ctx.transform(1, 0, 0, -1, 0, height);
-            break;
-          case 5: // Rotate 90 + flip
-            ctx.transform(0, 1, 1, 0, 0, 0);
-            break;
-          case 6: // Rotate 90
-            ctx.transform(0, 1, -1, 0, height, 0);
-            break;
-          case 7: // Rotate -90 + flip
-            ctx.transform(0, -1, -1, 0, height, width);
-            break;
-          case 8: // Rotate -90
-            ctx.transform(0, -1, 1, 0, 0, width);
-            break;
-          default:
-            break;
-        }
-
-        ctx.drawImage(img, 0, 0);
-        const correctedImg = new Image();
-        correctedImg.onload = () => resolve(correctedImg);
-        correctedImg.onerror = reject;
-        correctedImg.src = canvas.toDataURL();
-      } catch {
-        // If EXIF reading fails, fall back to original image
-        resolve(img);
-      }
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-// ──────────────────────────────────────────────────────────────
-// MULTI‑SCALE, MULTI‑THRESHOLD DECODER
-// ──────────────────────────────────────────────────────────────
-async function decodeQR(file: File): Promise<string | null> {
-  // ───── 1. NATIVE API (FAST, sometimes orientation‑aware) ─────
-  try {
-    const BarcodeDetectorClass = (window as any).BarcodeDetector;
-    if (BarcodeDetectorClass) {
-      const detector = new BarcodeDetectorClass({ formats: ['qr_code'] });
-      const bitmap = await createImageBitmap(file);
-      const results = await detector.detect(bitmap);
-      if (results.length > 0) {
-        return results[0].rawValue;
-      }
-    }
-  } catch {
-    // Ignore and fall back to jsQR
-  }
-
-  // ───── 2. ORIENTATION‑CORRECTED IMAGE ─────
-  let img: HTMLImageElement;
-  try {
-    img = await getOrientationCorrectedImage(file);
-  } catch {
+async function tryNativeBarcodeDetector(file: File): Promise<string | null> {
+  const BarcodeDetectorCtor = (window as any).BarcodeDetector;
+  if (!BarcodeDetectorCtor || typeof BarcodeDetectorCtor !== 'function') {
     return null;
   }
 
-  // Try multiple scales (higher chance to catch small or huge QR codes)
-  const scales = [1, 0.8, 0.6, 0.4, 0.3];
-  // Different luminance thresholds for varying lighting conditions
-  const thresholds = [135, 110, 160, 180];
-
-  for (const scale of scales) {
-    const targetWidth = Math.floor(img.width * scale);
-    const targetHeight = Math.floor(img.height * scale);
-    if (targetWidth < 50 || targetHeight < 50) continue; // too small
-
-    const canvas = document.createElement('canvas');
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-    let imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-
-    // Try raw image first
-    let result = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'attemptBoth',
-    })?.data;
-    if (result) return result;
-
-    // Then try each threshold (binarization)
-    for (const thresh of thresholds) {
-      const data = new Uint8ClampedArray(imageData.data);
-      for (let i = 0; i < data.length; i += 4) {
-        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        const value = gray < thresh ? 0 : 255;
-        data[i] = data[i + 1] = data[i + 2] = value;
-      }
-      const processed = new ImageData(data, imageData.width, imageData.height);
-      result = jsQR(processed.data, processed.width, processed.height, {
-        inversionAttempts: 'attemptBoth',
-      })?.data;
-      if (result) return result;
+  try {
+    // @ts-expect-error - BarcodeDetector types not yet in DOM lib
+    const detector = new BarcodeDetectorCtor({ formats: ['qr_code'] });
+    const bitmap = await createImageBitmap(file);
+    const results = await detector.detect(bitmap);
+    if (results?.length > 0) {
+      return results[0].rawValue;
     }
+  } catch (e) {
+    console.warn('Native barcode detection failed', e);
+  }
+  return null;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Multi‑rotation + adaptive threshold decoder
+// ──────────────────────────────────────────────────────────────
+async function decodeQR(file: File): Promise<string | null> {
+  // 1. Native API
+  const nativeResult = await tryNativeBarcodeDetector(file);
+  if (nativeResult) return nativeResult;
+
+  // 2. Load image
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = URL.createObjectURL(file);
+  });
+
+  const tryDecodeOnCanvas = (canvas: HTMLCanvasElement): string | null => {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Pass 1: raw
+    const rawResult = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'attemptBoth',
+    });
+    if (rawResult?.data) return rawResult.data;
+
+    // Pass 2: adaptive threshold
+    let sum = 0;
+    const pixels = imageData.data;
+    for (let i = 0; i < pixels.length; i += 4) {
+      const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+      sum += gray;
+    }
+    const threshold = sum / (pixels.length / 4);
+
+    const binarized = new Uint8ClampedArray(pixels);
+    for (let i = 0; i < binarized.length; i += 4) {
+      const gray = 0.299 * binarized[i] + 0.587 * binarized[i + 1] + 0.114 * binarized[i + 2];
+      const value = gray < threshold ? 0 : 255;
+      binarized[i] = binarized[i + 1] = binarized[i + 2] = value;
+    }
+    const processed = new ImageData(binarized, imageData.width, imageData.height);
+    const procResult = jsQR(processed.data, processed.width, processed.height, {
+      inversionAttempts: 'attemptBoth',
+    });
+    return procResult?.data ?? null;
+  };
+
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  let ctx = canvas.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+
+  let result = tryDecodeOnCanvas(canvas);
+  if (result) return result;
+
+  for (const angle of [90, 180, 270]) {
+    canvas.width = (angle % 180 === 90) ? img.height : img.width;
+    canvas.height = (angle % 180 === 90) ? img.width : img.height;
+    ctx = canvas.getContext('2d')!;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(angle * Math.PI / 180);
+    ctx.drawImage(img, -img.width / 2, -img.height / 2);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    result = tryDecodeOnCanvas(canvas);
+    if (result) return result;
   }
 
   return null;
 }
 
 // ──────────────────────────────────────────────────────────────
-// URL VALIDATION
+// URL validation
 // ──────────────────────────────────────────────────────────────
 function isUrl(text: string): boolean {
   try {
@@ -179,7 +132,7 @@ function isUrl(text: string): boolean {
 }
 
 // ──────────────────────────────────────────────────────────────
-// MAIN COMPONENT
+// Component
 // ──────────────────────────────────────────────────────────────
 export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -193,10 +146,7 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
       setLastResult(null);
 
       if (!file.type.startsWith('image/')) {
-        setError({
-          type: 'file',
-          message: 'Please upload a valid image file',
-        });
+        setError({ type: 'file', message: 'Please upload a valid image file' });
         return;
       }
 
@@ -208,19 +158,13 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
         text = await decodeQR(file);
       } catch (err) {
         console.error(err);
-        setError({
-          type: 'decode-fail',
-          message: 'Failed to decode image',
-        });
+        setError({ type: 'decode-fail', message: 'Failed to decode image' });
         setPhase('idle');
         return;
       }
 
       if (!text) {
-        setError({
-          type: 'no-qr',
-          message: 'No QR code found in this image',
-        });
+        setError({ type: 'no-qr', message: 'No QR code found in this image' });
         setPhase('idle');
         return;
       }
@@ -228,10 +172,7 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
       setLastResult(text);
 
       if (!isUrl(text)) {
-        setError({
-          type: 'invalid-url',
-          message: `QR found but not a URL: "${text.slice(0, 80)}"`,
-        });
+        setError({ type: 'invalid-url', message: `QR found but not a URL: "${text.slice(0, 80)}"` });
         setPhase('idle');
         return;
       }
@@ -249,8 +190,7 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
       <div
         onClick={() => !disabled && fileInputRef.current?.click()}
         className={`border-2 border-dashed rounded-3xl p-10 text-center transition cursor-pointer
-          ${disabled ? 'opacity-50' : 'hover:border-indigo-500'}
-        `}
+          ${disabled ? 'opacity-50' : 'hover:border-indigo-500'}`}
       >
         <input
           ref={fileInputRef}
@@ -273,9 +213,7 @@ export default function QRScanner({ onScanSuccess, isLoading }: QRScannerProps) 
             <Image className="w-8 h-8 text-indigo-500" />
             <Camera className="w-6 h-6 text-gray-400" />
             <p className="text-sm font-bold">Upload QR Image</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Best results with well‑lit, centered QR codes
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Best results with well‑lit, centered QR codes</p>
           </div>
         )}
       </div>
