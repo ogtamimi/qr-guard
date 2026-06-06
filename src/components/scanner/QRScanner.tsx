@@ -1,11 +1,11 @@
 import React, { useRef, useState, useCallback } from 'react';
 import jsQR from 'jsqr';
+import { BrowserQRCodeReader } from '@zxing/library';
 import {
   Image,
   Loader2,
   ShieldAlert,
   Camera,
-  AlertTriangle,
   CheckCircle2
 } from 'lucide-react';
 
@@ -21,9 +21,9 @@ interface ErrorState {
   message: string;
 }
 
-// ─────────────────────────────────────────────
+// ───────────────────────────────
 // Helpers
-// ─────────────────────────────────────────────
+// ───────────────────────────────
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -34,7 +34,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function resizeCanvas(img: HTMLImageElement, max = 1000): HTMLCanvasElement {
+function resizeCanvas(img: HTMLImageElement, max = 1200): HTMLCanvasElement {
   const scale = Math.min(max / img.width, max / img.height, 1);
 
   const canvas = document.createElement('canvas');
@@ -47,63 +47,59 @@ function resizeCanvas(img: HTMLImageElement, max = 1000): HTMLCanvasElement {
   return canvas;
 }
 
-// ─────────────────────────────────────────────
-// Fast QR decode pipeline
-// ─────────────────────────────────────────────
+// ───────────────────────────────
+// Decode engine (FAST + RELIABLE)
+// ───────────────────────────────
 
 async function decodeQR(dataUrl: string): Promise<string | null> {
   const img = await loadImage(dataUrl);
 
-  const canvas = resizeCanvas(img, 1000);
+  const canvas = resizeCanvas(img, 1200);
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-  // ── 1. FAST PASS (original image)
+  // ── 1. FAST PATH (jsQR)
   let result = jsQR(imageData.data, imageData.width, imageData.height, {
     inversionAttempts: "attemptBoth",
   });
 
   if (result?.data) return result.data;
 
-  // ── 2. SIMPLE CONTRAST FIX (single fallback)
-  const d = new Uint8ClampedArray(imageData.data);
+  // ── 2. STRONG FALLBACK (ZXing)
+  try {
+    const reader = new BrowserQRCodeReader();
 
-  for (let i = 0; i < d.length; i += 4) {
-    const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    const value = gray < 140 ? 0 : 255;
+    const tempImg = document.createElement('img');
+    tempImg.src = dataUrl;
 
-    d[i] = value;
-    d[i + 1] = value;
-    d[i + 2] = value;
+    await new Promise((resolve, reject) => {
+      tempImg.onload = resolve;
+      tempImg.onerror = reject;
+    });
+
+    const zxingResult = await reader.decodeFromImageElement(tempImg);
+    return zxingResult?.getText() ?? null;
+  } catch {
+    return null;
   }
-
-  const processed = new ImageData(d, imageData.width, imageData.height);
-
-  result = jsQR(processed.data, processed.width, processed.height, {
-    inversionAttempts: "attemptBoth",
-  });
-
-  return result?.data ?? null;
 }
 
-// ─────────────────────────────────────────────
+// ───────────────────────────────
 // URL validation
-// ─────────────────────────────────────────────
+// ───────────────────────────────
 
 function looksLikeUrl(text: string): boolean {
   try {
-    const url = new URL(
-      /^https?:\/\//i.test(text) ? text : `http://${text}`
-    );
+    const url = new URL(/^https?:\/\//i.test(text) ? text : `http://${text}`);
     return url.hostname.includes('.');
   } catch {
     return false;
   }
 }
 
-// ─────────────────────────────────────────────
+// ───────────────────────────────
 // Component
-// ─────────────────────────────────────────────
+// ───────────────────────────────
 
 export default function QRScanner({
   onScanSuccess,
@@ -176,9 +172,9 @@ export default function QRScanner({
     onScanSuccess(text, 'QR_IMAGE');
   }, [onScanSuccess]);
 
-  // ─────────────────────────────────────────────
-  // Drag handlers
-  // ─────────────────────────────────────────────
+  // ───────────────────────────────
+  // Drag & drop
+  // ───────────────────────────────
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -196,19 +192,16 @@ export default function QRScanner({
 
   const disabled = isLoading || phase !== 'idle';
 
-  // ─────────────────────────────────────────────
+  // ───────────────────────────────
   // UI
-  // ─────────────────────────────────────────────
+  // ───────────────────────────────
 
   return (
     <div className="w-full space-y-3">
 
       <div
         onClick={() => !disabled && fileInputRef.current?.click()}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragActive(true);
-        }}
+        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-3xl p-10 text-center transition
@@ -239,7 +232,7 @@ export default function QRScanner({
             </div>
             <p className="text-sm font-bold">Upload QR Image</p>
             <p className="text-xs text-slate-400">
-              Fast scan · Lightweight processing
+              Fast + Reliable scan
             </p>
           </div>
         )}
@@ -257,9 +250,7 @@ export default function QRScanner({
           <ShieldAlert className="w-4 h-4" />
           <div>
             <p className="font-bold mb-1">
-              {error.type === 'no-qr'
-                ? 'No QR Found'
-                : 'Error'}
+              {error.type === 'no-qr' ? 'No QR Found' : 'Error'}
             </p>
             <p>{error.message}</p>
           </div>
