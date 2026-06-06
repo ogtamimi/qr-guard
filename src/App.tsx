@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ClerkProvider, useUser, useClerk, UserButton } from '@clerk/clerk-react';
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 import {
   Shield, ShieldCheck, ShieldAlert, ShieldX, Loader2, Globe, History,
@@ -577,7 +578,7 @@ export function AppContent({
 
       <PaymentRedirectModal isOpen={isPayPalModalOpen} onClose={() => setIsPayPalModalOpen(false)} plan={selectedPlanToPurchase} userEmail={userEmail || ''} onPaymentInitiated={() => {}} />
 
-
+     <SpeedInsights />
     </div>
   );
 }
