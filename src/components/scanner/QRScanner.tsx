@@ -20,9 +20,9 @@ interface ErrorState {
   message: string;
 }
 
-// ─────────────────────────────────────────────
-// LOAD IMAGE (FIXED TS ISSUE)
-// ─────────────────────────────────────────────
+// ─────────────────────────────
+// IMAGE LOADER
+// ─────────────────────────────
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -33,11 +33,11 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-// ─────────────────────────────────────────────
-// RESIZE (FAST + SAFE)
-// ─────────────────────────────────────────────
+// ─────────────────────────────
+// RESIZE (important for speed + stability)
+// ─────────────────────────────
 
-function resizeCanvas(img: HTMLImageElement, max = 1000): HTMLCanvasElement {
+function resizeCanvas(img: HTMLImageElement, max = 1300): HTMLCanvasElement {
   const scale = Math.min(max / img.width, max / img.height, 1);
 
   const canvas = document.createElement('canvas');
@@ -50,13 +50,23 @@ function resizeCanvas(img: HTMLImageElement, max = 1000): HTMLCanvasElement {
   return canvas;
 }
 
-// ─────────────────────────────────────────────
-// MAIN DECODER (REAL APP STYLE)
-// ─────────────────────────────────────────────
+// ─────────────────────────────
+// JSQR DECODER
+// ─────────────────────────────
+
+function decodeWithJsQR(imageData: ImageData) {
+  return jsQR(imageData.data, imageData.width, imageData.height, {
+    inversionAttempts: "attemptBoth",
+  })?.data ?? null;
+}
+
+// ─────────────────────────────
+// MAIN DECODER (REAL-WORLD BALANCED)
+// ─────────────────────────────
 
 async function decodeQR(file: File): Promise<string | null> {
 
-  // ───── 1. NATIVE BROWSER API (FASTEST) ─────
+  // ───── 1. NATIVE API (FASTEST) ─────
   try {
     const BarcodeDetectorClass = (window as any).BarcodeDetector;
 
@@ -76,23 +86,43 @@ async function decodeQR(file: File): Promise<string | null> {
     // ignore fallback
   }
 
-  // ───── 2. JSQR FALLBACK (LIGHTWEIGHT) ─────
+  // ───── 2. JSQR FALLBACK ─────
   const img = await loadImage(file);
+  const canvas = resizeCanvas(img, 1300);
 
-  const canvas = resizeCanvas(img, 1000);
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-  const result = jsQR(imageData.data, imageData.width, imageData.height, {
-    inversionAttempts: "attemptBoth",
-  });
+  // PASS 1 — normal
+  let result = decodeWithJsQR(imageData);
+  if (result) return result;
 
-  return result?.data ?? null;
+  // PASS 2 — improved contrast (ONLY ONE extra pass)
+  const data = new Uint8ClampedArray(imageData.data);
+
+  for (let i = 0; i < data.length; i += 4) {
+    const gray =
+      0.299 * data[i] +
+      0.587 * data[i + 1] +
+      0.114 * data[i + 2];
+
+    const value = gray < 135 ? 0 : 255;
+
+    data[i] = value;
+    data[i + 1] = value;
+    data[i + 2] = value;
+  }
+
+  const processed = new ImageData(data, imageData.width, imageData.height);
+
+  result = decodeWithJsQR(processed);
+
+  return result;
 }
 
-// ─────────────────────────────────────────────
-// URL VALIDATION
-// ─────────────────────────────────────────────
+// ─────────────────────────────
+// URL CHECK
+// ─────────────────────────────
 
 function isUrl(text: string): boolean {
   try {
@@ -103,9 +133,9 @@ function isUrl(text: string): boolean {
   }
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────
 // COMPONENT
-// ─────────────────────────────────────────────
+// ─────────────────────────────
 
 export default function QRScanner({
   onScanSuccess,
@@ -196,7 +226,7 @@ export default function QRScanner({
         {phase === 'decoding' ? (
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />
-            <p className="text-sm font-bold">Decoding QR…</p>
+            <p className="text-sm font-bold">Scanning QR…</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
